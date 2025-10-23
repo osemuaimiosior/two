@@ -4,9 +4,23 @@
   "description": "",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^17.0.0",
+    "@chainsafe/libp2p-yamux": "^8.0.1",
+    "@libp2p/bootstrap": "^12.0.6",
+    "@libp2p/websockets": "^10.0.6",
+    "cluster": "^0.7.7",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "libp2p": "^3.0.6",
+    "nodemon": "^3.1.10"
   }
 }
