@@ -1,0 +1,115 @@
+import { mdns } from '@libp2p/mdns';
+import { createLibp2p } from 'libp2p';
+import { tcp } from '@libp2p/tcp';
+import { yamux } from '@chainsafe/libp2p-yamux';
+import { noise } from '@chainsafe/libp2p-noise';
+import { gossipsub } from '@chainsafe/libp2p-gossipsub';
+// import { SignaturePolicy } from '@libp2p/interface'
+import { identify } from '@libp2p/identify';
+import { fromString as uint8ArrayFromString } from 'uint8arrays'
+import { toString as uint8ArrayToString } from 'uint8arrays';
+import { LevelDatastore } from 'datastore-level';
+import { liDARDataProcessing } from '../services/parietalData';
+
+const brainBoxPlTopic = "brainBox/parietal/liDAR";
+const brainBoxSubTopic = "brainBox";
+
+const datastore = new LevelDatastore('./data/liDAR-db')
+await datastore.open() // level database must be ready before node boot
+
+
+const liDARNode = await createLibp2p({
+    addresses: {
+      listen: ['/ip4/0.0.0.0/tcp/0']
+    },
+    transports: [
+      tcp()
+    ],
+    streamMuxers: [
+      yamux()
+    ],
+    connectionEncrypters: [
+      noise()
+    ],
+    peerDiscovery: [
+      mdns({
+        interval: 20e3
+      })
+    ],
+    peerStore: {
+      persistence: true,
+      threshold: 5
+    },
+    services: {
+      identify: identify(),
+      pubsub: gossipsub({
+        emitSelf: false,                                  // whether the liDARNode should emit to self on publish
+        // globalSignaturePolicy: SignaturePolicy.StrictSign // message signing policy
+      })
+    }
+  });
+
+// const order = {
+//   orderId: "ORD-98231",
+//   customer: "John Doe",
+//   items: [
+//     { product: "Brown Rice Protein", quantity: 5, price: 12.50 },
+//     { product: "Energy Drink", quantity: 12, price: 2.99 }
+//   ],
+//   total: 90.38,
+//   status: "processing",
+//   timestamp: new Date().toISOString()
+// }
+
+// const message = JSON.stringify(order)  // convert object to string
+
+// client.on('connect', () => {
+//   client.publish(fc105103Topic, message, { qos: 1, retain: false }, (error) => {
+//     if (error) {
+//       console.error(error)
+//     }
+//   });
+
+//   client.publish(fc105102Topic, message, { qos: 1, retain: false }, (error) => {
+//     if (error) {
+//       console.error(error)
+//     }
+//   })
+// })
+
+// client.end();
+
+liDARNode.services.pubsub.subscribe(brainBoxPlTopic)
+liDARNode.services.pubsub.subscribe(brainBoxSubTopic)
+
+liDARNode.addEventListener('peer:discovery', async (evt) => {
+    console.log('Discovered:', evt.detail.id.toString());
+    console.log('Connected to:', evt.detail);
+});
+
+liDARNode.services.pubsub.addEventListener('message', async (evt) => {
+
+  switch(evt.detail.topic){
+    case 'brainBox':
+      
+    break;
+
+    case 'brainBox/parietal/liDAR':
+
+    //sample incoming data
+    // {
+    //   "timestamp": 1730191823.523,
+    //   "points": [
+    //     {"x": 12.45, "y": -3.22, "z": 1.8, "intensity": 0.76},
+    //     {"x": 11.02, "y": -2.85, "z": 1.75, "intensity": 0.68},
+    //     ...
+    //   ]
+    // }
+
+      const result = await liDARDataProcessing(evt.detail.data);
+      console.log(`liDARNode received: ${uint8ArrayToString(evt.detail.data)} on topic ${evt.detail.topic}`)
+    
+    break;
+  };
+  
+});

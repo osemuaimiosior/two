@@ -9,39 +9,17 @@ import { identify } from '@libp2p/identify';
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { toString as uint8ArrayToString } from 'uint8arrays';
 import { LevelDatastore } from 'datastore-level';
-import mqtt from 'mqtt';
+import { liDARDataProcessing } from '../services/parietalData';
 
-//<============================ Broker Subcription ==========
-const parietalLiDARTopic = 'parietal/liDAR';
-const parietalCameraTopic = 'parietal/camera';
-const frontalTopic = 'frontal';
-
-const brainBoxSubTopic = "brainBox";
 const brainBoxPlTopic = "brainBox/parietal/liDAR";
 const brainBoxCaTopic = "brainBox/parietal/camera";
+const brainBoxSubTopic = "brainBox";
 
-const datastore = new LevelDatastore('./data/brain-box-db')
+const datastore = new LevelDatastore('./data/liDAR-db')
 await datastore.open() // level database must be ready before node boot
 
-//Public broker detail, change to prod broker
-const protocol = 'ws'
-const host = 'broker.emqx.io'
-const port = '8083'
-const path = '/mqtt'
-const clientId = `mqtt_${Math.random().toString(16).slice(3)}`
 
-const connectUrl = `${protocol}://${host}:${port}${path}`;
-
-const client = mqtt.connect(connectUrl, {
-  clientId,
-  clean: true,
-  connectTimeout: 4000,
-  username: 'emqx',
-  password: 'public',
-  reconnectPeriod: 1000,
-  });
-
-const brainBoxNode = await createLibp2p({
+const cameraNode = await createLibp2p({
     addresses: {
       listen: ['/ip4/0.0.0.0/tcp/0']
     },
@@ -66,23 +44,11 @@ const brainBoxNode = await createLibp2p({
     services: {
       identify: identify(),
       pubsub: gossipsub({
-        emitSelf: false,                                  // whether the brainBoxNode should emit to self on publish
+        emitSelf: false,                                  // whether the cameraNode should emit to self on publish
         // globalSignaturePolicy: SignaturePolicy.StrictSign // message signing policy
       })
     }
   });
-
-client.on('connect', () => {
-  console.log('Connected')
-  client.subscribe(
-      [ parietalLiDARTopic, 
-        frontalTopic,
-        parietalCameraTopic
-      ], () => {
-      console.log(`Subscribe to topic '${parietalLiDARTopic}'`)
-      console.log(`Subscribe to topic '${frontalTopic}'`)
-    })
-});
 
 // const order = {
 //   orderId: "ORD-98231",
@@ -114,35 +80,39 @@ client.on('connect', () => {
 
 // client.end();
 
-brainBoxNode.services.pubsub.subscribe(brainBoxSubTopic);
-brainBoxNode.services.pubsub.subscribe(brainBoxPlTopic);
-brainBoxNode.services.pubsub.subscribe(brainBoxCaTopic);
+cameraNode.services.pubsub.subscribe(brainBoxSubTopic);
+cameraNode.services.pubsub.subscribe(brainBoxCaTopic);
 
-brainBoxNode.addEventListener('peer:discovery', async (evt) => {
+cameraNode.addEventListener('peer:discovery', async (evt) => {
     console.log('Discovered:', evt.detail.id.toString());
     console.log('Connected to:', evt.detail);
 });
 
-client.on('message', async (topic, payload) => {
-  const topicName = topic;
-  
-  switch(topicName) {
+cameraNode.services.pubsub.addEventListener('message', async (evt) => {
 
-    case 'parietal/liDAR':
-      brainBoxNode.services.pubsub.publish(
-          brainBoxPlTopic, 
-          new TextEncoder().encode(payload.toString()));
+  switch(evt.detail.topic){
+    case 'brainBox':
+      
     break;
 
-    case 'parietal/camera':
-      brainBoxNode.services.pubsub.publish(
-          brainBoxCaTopic, 
-          new TextEncoder().encode(payload.toString()));
+    case 'brainBox/parietal/camera':
+
+    //sample incoming data
+    // {
+    //   "timestamp": 1730191823.541,
+    //   "camera_id": "front_center",
+    //   "image": "base64encodedimage...",
+    //   "objects_detected": [
+    //     {"label": "car", "confidence": 0.94, "bbox": [312, 245, 480, 390]},
+    //     {"label": "pedestrian", "confidence": 0.88, "bbox": [190, 230, 220, 360]}
+    //   ]
+    // }
+
+
+      const result = await liDARDataProcessing(evt.detail.data);
+      console.log(`cameraNode received: ${uint8ArrayToString(evt.detail.data)} on topic ${evt.detail.topic}`)
+    
     break;
   };
-
-});
-
-brainBoxNode.services.pubsub.addEventListener('message', (evt) => {
-  console.log(`brainBoxNode received: ${uint8ArrayToString(evt.detail.data)} on topic ${evt.detail.topic}`)
+  
 });

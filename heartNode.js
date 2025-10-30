@@ -47,19 +47,6 @@ client.on('message', (topic, payload) => {
   const order = JSON.parse(message.toString()) // convert back to JS object
 });
 
-// client.on('connect', () => {
-//   client.publish(fc105103Topic, 'nodejs mqtt test', { qos: 0, retain: false }, (error) => {
-//     if (error) {
-//       console.error(error)
-//     }
-//   });
-
-//   client.publish(fc105102Topic, 'nodejs mqtt test', { qos: 0, retain: false }, (error) => {
-//     if (error) {
-//       console.error(error)
-//     }
-//   })
-// })
 
 const topic = "mainConnection";
 const heartNode = await createLibp2p({
