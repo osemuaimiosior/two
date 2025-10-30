@@ -24,7 +24,6 @@ const bootstrapMultiaddrs = [
 export const createNodeCluster = asyncHandler( async (req, res) => {
     const nosNodes = parseInt(req.params.NUMBER_OF_NODES, 10);
     
-
     if(nosNodes < 2 || nosNodes > 50){
         return res.json({
             "StatusCode": 400,

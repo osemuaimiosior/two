@@ -12,15 +12,27 @@
     "dev": "nodemon app.js"
   },
   "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.2",
     "@chainsafe/libp2p-noise": "^17.0.0",
     "@chainsafe/libp2p-yamux": "^8.0.1",
     "@libp2p/bootstrap": "^12.0.6",
+    "@libp2p/identify": "^4.0.6",
+    "@libp2p/interface": "^3.0.2",
+    "@libp2p/kad-dht": "^16.0.6",
+    "@libp2p/mdns": "^12.0.7",
+    "@libp2p/peer-id": "^6.0.3",
+    "@libp2p/peer-store": "^12.0.6",
+    "@libp2p/ping": "^3.0.6",
+    "@libp2p/tcp": "^11.0.6",
     "@libp2p/websockets": "^10.0.6",
     "cluster": "^0.7.7",
+    "datastore-level": "^12.0.2",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "libp2p": "^3.0.6",
-    "nodemon": "^3.1.10"
+    "mqtt": "^5.14.1",
+    "nodemon": "^3.1.10",
+    "uint8arrays": "^5.1.0"
   }
 }
