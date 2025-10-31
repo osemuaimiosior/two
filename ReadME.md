@@ -14,3 +14,8 @@ Requirements.
 - Brain box (Data processing)
  - Parietal
     - LiDAR (Light Detection and Ranging) => Builds a 3D map of surroundings.
+    - Camera (RGB / IR / Stereo) => Detects traffic signs, lanes, pedestrians, and vehicles.
+    - GPS / GNSS => Provides global position.
+    - IMU (Inertial Measurement Unit) => Tracks acceleration and rotation for dead reckoning.
+    - Weather Sensor => Detects conditions affecting perception.
+    - Vehicle Telemetry => Reports internal state and controls.

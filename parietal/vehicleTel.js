@@ -9,12 +9,12 @@ import { identify } from '@libp2p/identify';
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { toString as uint8ArrayToString } from 'uint8arrays';
 import { LevelDatastore } from 'datastore-level';
-import { cameraDataProcessing } from '../services/parietalData.js';
+import { cameraDataProcessing } from '../services/parietalData';
 
-const brainBoxCaTopic = "brainBox/parietal/camera";
+const brainBoxvehicleTelTopic = "brainBox/parietal/vehicleTel";
 const brainBoxSubTopic = "brainBox";
 
-const datastore = new LevelDatastore('./data/camera-db')
+const datastore = new LevelDatastore('./data/vehicleTel-db')
 await datastore.open() // level database must be ready before node boot
 
 
@@ -80,7 +80,7 @@ const cameraNode = await createLibp2p({
 // client.end();
 
 cameraNode.services.pubsub.subscribe(brainBoxSubTopic);
-cameraNode.services.pubsub.subscribe(brainBoxCaTopic);
+cameraNode.services.pubsub.subscribe(brainBoxvehicleTelTopic);
 
 cameraNode.addEventListener('peer:discovery', async (evt) => {
     console.log('Discovered:', evt.detail.id.toString());
@@ -94,17 +94,15 @@ cameraNode.services.pubsub.addEventListener('message', async (evt) => {
       
     break;
 
-    case 'brainBox/parietal/camera':
+    case 'brainBox/parietal/vehicleTel':
 
     //sample incoming data
     // {
-    //   "timestamp": 1730191823.541,
-    //   "camera_id": "front_center",
-    //   "image": "base64encodedimage...",
-    //   "objects_detected": [
-    //     {"label": "car", "confidence": 0.94, "bbox": [312, 245, 480, 390]},
-    //     {"label": "pedestrian", "confidence": 0.88, "bbox": [190, 230, 220, 360]}
-    //   ]
+    //     "timestamp": 1730191823.750,
+    //     "steering_angle_deg": -5.3,
+    //     "throttle_percent": 22.0,
+    //     "brake_percent": 0.0,
+    //     "gear": "D"
     // }
 
       const result = await cameraDataProcessing(evt.detail.data);

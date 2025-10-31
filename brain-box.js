@@ -11,14 +11,24 @@ import { toString as uint8ArrayToString } from 'uint8arrays';
 import { LevelDatastore } from 'datastore-level';
 import mqtt from 'mqtt';
 
-//<============================ Broker Subcription ==========
+//<============================ Broker Subcription Topic's ==================================>//
 const parietalLiDARTopic = 'parietal/liDAR';
 const parietalCameraTopic = 'parietal/camera';
-const frontalTopic = 'frontal';
+const parietalGpsTopic = 'parietal/gps';
+const parietalImuTopic = 'parietal/imu';
+const parietalWeatherTopic = 'parietal/weather';
+const parietalvehicleTelTopic = 'parietal/vehicleTel';
+//<============================ Broker Subcription Topic's ==================================>//
 
+//<============================ p2p Subcription Topic's ==================================>//
 const brainBoxSubTopic = "brainBox";
 const brainBoxPlTopic = "brainBox/parietal/liDAR";
 const brainBoxCaTopic = "brainBox/parietal/camera";
+const brainBoxGpsTopic = "brainBox/parietal/gps";
+const brainBoxImuTopic = "brainBox/parietal/imu";
+const brainBoxWeatherTopic = "brainBox/parietal/weather";
+const brainBoxvehicleTelTopic = "brainBox/parietal/vehicleTel";
+//<============================ p2p Subcription Topic's ==================================>//
 
 const datastore = new LevelDatastore('./data/brain-box-db')
 await datastore.open() // level database must be ready before node boot
@@ -76,11 +86,14 @@ client.on('connect', () => {
   console.log('Connected')
   client.subscribe(
       [ parietalLiDARTopic, 
-        frontalTopic,
-        parietalCameraTopic
+        parietalGpsTopic,
+        parietalCameraTopic,
+        parietalImuTopic,
+        parietalWeatherTopic,
+        parietalvehicleTelTopic
       ], () => {
       console.log(`Subscribe to topic '${parietalLiDARTopic}'`)
-      console.log(`Subscribe to topic '${frontalTopic}'`)
+      console.log(`Subscribe to topic '${parietalGpsTopic}'`)
     })
 });
 
@@ -117,6 +130,10 @@ client.on('connect', () => {
 brainBoxNode.services.pubsub.subscribe(brainBoxSubTopic);
 brainBoxNode.services.pubsub.subscribe(brainBoxPlTopic);
 brainBoxNode.services.pubsub.subscribe(brainBoxCaTopic);
+brainBoxNode.services.pubsub.subscribe(brainBoxGpsTopic);
+brainBoxNode.services.pubsub.subscribe(brainBoxImuTopic);
+brainBoxNode.services.pubsub.subscribe(brainBoxWeatherTopic);
+brainBoxNode.services.pubsub.subscribe(brainBoxvehicleTelTopic);
 
 brainBoxNode.addEventListener('peer:discovery', async (evt) => {
     console.log('Discovered:', evt.detail.id.toString());
@@ -137,6 +154,30 @@ client.on('message', async (topic, payload) => {
     case 'parietal/camera':
       brainBoxNode.services.pubsub.publish(
           brainBoxCaTopic, 
+          new TextEncoder().encode(payload.toString()));
+    break;
+
+    case 'parietal/gps':
+      brainBoxNode.services.pubsub.publish(
+          brainBoxGpsTopic, 
+          new TextEncoder().encode(payload.toString()));
+    break;
+
+    case 'parietal/imu':
+      brainBoxNode.services.pubsub.publish(
+          brainBoxImuTopic, 
+          new TextEncoder().encode(payload.toString()));
+    break;
+
+    case 'parietal/weather':
+      brainBoxNode.services.pubsub.publish(
+          brainBoxWeatherTopic, 
+          new TextEncoder().encode(payload.toString()));
+    break;
+
+    case 'parietal/vehicleTel':
+      brainBoxNode.services.pubsub.publish(
+          brainBoxvehicleTelTopic, 
           new TextEncoder().encode(payload.toString()));
     break;
   };

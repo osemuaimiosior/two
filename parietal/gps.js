@@ -9,16 +9,16 @@ import { identify } from '@libp2p/identify';
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { toString as uint8ArrayToString } from 'uint8arrays';
 import { LevelDatastore } from 'datastore-level';
-import { cameraDataProcessing } from '../services/parietalData.js';
+import { cameraDataProcessing } from '../services/parietalData';
 
-const brainBoxCaTopic = "brainBox/parietal/camera";
+const brainBoxGpsTopic = "brainBox/parietal/gps";
 const brainBoxSubTopic = "brainBox";
 
-const datastore = new LevelDatastore('./data/camera-db')
+const datastore = new LevelDatastore('./data/gps-db')
 await datastore.open() // level database must be ready before node boot
 
 
-const cameraNode = await createLibp2p({
+const gpsNode = await createLibp2p({
     addresses: {
       listen: ['/ip4/0.0.0.0/tcp/0']
     },
@@ -43,7 +43,7 @@ const cameraNode = await createLibp2p({
     services: {
       identify: identify(),
       pubsub: gossipsub({
-        emitSelf: false,                                  // whether the cameraNode should emit to self on publish
+        emitSelf: false,                                  // whether the gpsNode should emit to self on publish
         // globalSignaturePolicy: SignaturePolicy.StrictSign // message signing policy
       })
     }
@@ -79,36 +79,34 @@ const cameraNode = await createLibp2p({
 
 // client.end();
 
-cameraNode.services.pubsub.subscribe(brainBoxSubTopic);
-cameraNode.services.pubsub.subscribe(brainBoxCaTopic);
+gpsNode.services.pubsub.subscribe(brainBoxSubTopic);
+gpsNode.services.pubsub.subscribe(brainBoxGpsTopic);
 
-cameraNode.addEventListener('peer:discovery', async (evt) => {
+gpsNode.addEventListener('peer:discovery', async (evt) => {
     console.log('Discovered:', evt.detail.id.toString());
     console.log('Connected to:', evt.detail);
 });
 
-cameraNode.services.pubsub.addEventListener('message', async (evt) => {
+gpsNode.services.pubsub.addEventListener('message', async (evt) => {
 
   switch(evt.detail.topic){
     case 'brainBox':
       
     break;
 
-    case 'brainBox/parietal/camera':
+    case 'brainBox/parietal/gps':
 
     //sample incoming data
     // {
-    //   "timestamp": 1730191823.541,
-    //   "camera_id": "front_center",
-    //   "image": "base64encodedimage...",
-    //   "objects_detected": [
-    //     {"label": "car", "confidence": 0.94, "bbox": [312, 245, 480, 390]},
-    //     {"label": "pedestrian", "confidence": 0.88, "bbox": [190, 230, 220, 360]}
-    //   ]
+    //     "timestamp": 1730191823.621,
+    //     "latitude": 37.4219983,
+    //     "longitude": -122.084,
+    //     "altitude_m": 5.8,
+    //     "accuracy_m": 0.9
     // }
 
       const result = await cameraDataProcessing(evt.detail.data);
-      console.log(`cameraNode received: ${uint8ArrayToString(evt.detail.data)} on topic ${evt.detail.topic}`)
+      console.log(`gpsNode received: ${uint8ArrayToString(evt.detail.data)} on topic ${evt.detail.topic}`)
     
     break;
   };

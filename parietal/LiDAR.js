@@ -9,7 +9,7 @@ import { identify } from '@libp2p/identify';
 import { fromString as uint8ArrayFromString } from 'uint8arrays'
 import { toString as uint8ArrayToString } from 'uint8arrays';
 import { LevelDatastore } from 'datastore-level';
-import { liDARDataProcessing } from '../services/parietalData';
+import { liDARDataProcessing } from '../services/parietalData.js';
 
 const brainBoxPlTopic = "brainBox/parietal/liDAR";
 const brainBoxSubTopic = "brainBox";
