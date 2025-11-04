@@ -11,6 +11,10 @@ Requirements.
 - Implement advanced data analytics and machine learning capabilities to provide predictive maintenance, performance optimization, and business intelligence features.
 - Ensure system reliability, security, and compliance with industry standards and regulations.
 
+
+// Application flow
+Hardware layer (On-fieldfleet) ==> Software layer (gateway==> distributed nodes (brain-box) )
+
 - Brain box (Data processing)
  - Parietal
     - LiDAR (Light Detection and Ranging) => Builds a 3D map of surroundings.
